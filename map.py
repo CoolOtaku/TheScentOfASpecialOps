@@ -3,9 +3,8 @@ from ursina import Entity, DirectionalLight, Vec3, Sky
 from entitys.drops.wall import Wall
 from entitys.drops.box import Box
 from entitys.mob import Mob
-from entitys.weapons.akm import Akm
 
-from entitys.weapons.sval import Sval
+from entitys.weapons.ak47 import Ak47
 
 class Map(Entity):
     def __init__(self):
@@ -64,5 +63,5 @@ class Map(Entity):
             Wall(position=(cols * box_size + offset, 0, z * box_size), rotation=(0, 90, 0))"""
 
     def spawn_weapons(self):
-        pistol = Akm(parent=self)
+        pistol = Ak47(parent=self)
         self.weapons.append(pistol)
