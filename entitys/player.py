@@ -1,10 +1,10 @@
 from ursina.prefabs.first_person_controller import FirstPersonController
 from ursina import BoxCollider, color, destroy, distance, held_keys, mouse
 
-from entitys.weapons.weapon import Weapon
+from entitys.weapons.weapon import Weapon, WeaponType
 
 class Player(FirstPersonController):
-    def __init__(self, parent=None):
+    def __init__(self, parent):
         super().__init__(speed=5, origin_y=0.5, parent=parent)
         self.collider = BoxCollider(self, (0, 1, 0), (1, 2, 1))
         self.cursor.texture = 'assets/textures/other/scope.png'
@@ -12,9 +12,10 @@ class Player(FirstPersonController):
         self.cursor.rotation_z = 90
         self.cursor.scale = 0.03
 
-        self.current_weapon = Weapon(parent=self.camera_pivot)
-        self.is_running = False
+        self.hands = Weapon(parent=self.camera_pivot)
+        self.current_weapon = self.hands
 
+        self.is_running = False
         self.walk_speed = 5
         self.run_speed = 8
 
@@ -23,8 +24,10 @@ class Player(FirstPersonController):
 
         if mouse.left:
             self.attack()
-        elif held_keys['e']:
+        if held_keys['e']:
             self.take()
+        elif held_keys['g']:
+            self.drop_weapon()
 
         if self.is_running != held_keys['shift']:
             self.is_running = held_keys['shift']
@@ -43,9 +46,7 @@ class Player(FirstPersonController):
 
         for weapon in self.parent.weapons:
             if distance(self.position, weapon.position) < 2:
-                self.current_weapon.animation('take', False)
-                self.equip_weapon(weapon)
-                self.parent.weapons.remove(weapon)
+                self.current_weapon.animation('take', False, self.equip_weapon(weapon))
                 break
 
     def equip_weapon(self, weapon):
@@ -53,6 +54,15 @@ class Player(FirstPersonController):
             return
 
         if self.current_weapon:
-            destroy(self.current_weapon)
+            self.hands.hide() if self.current_weapon.weapon_type == WeaponType.HANDS else destroy(self.current_weapon)
 
         weapon.equip(self)
+
+    def drop_weapon(self):
+        if self.current_weapon.is_action() or self.is_running:
+            return
+
+        self.current_weapon.drop(self)
+        self.current_weapon = self.hands
+        self.hands.equip(self)
+        self.hands.show()

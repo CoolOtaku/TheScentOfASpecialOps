@@ -11,7 +11,7 @@ class WeaponType(Enum):
     RIFLE = 2
 
 class Weapon(Entity):
-    def __init__(self, parent=camera.ui, weapon_type=WeaponType.HANDS,
+    def __init__(self, parent, weapon_type=WeaponType.HANDS,
                  animated_model='assets/models/players/hands.glb', lying_model=None,
                  attack_sound='assets/sound/punch.mp3',
                  cooldown=0.9, **kwargs):
@@ -20,7 +20,6 @@ class Weapon(Entity):
             rotation_x=180,
             rotation_z=180,
             parent=parent,
-            scale=0.02,
             **kwargs
         )
         self.animated_model = animated_model
@@ -33,6 +32,7 @@ class Weapon(Entity):
             self.actor.loop('idle')
 
         self.model = lying_model
+        self.scale = 0.02 if self.is_equipped else 0.05
 
         self.weapon_type = weapon_type
         self.cooldown = cooldown
@@ -52,24 +52,26 @@ class Weapon(Entity):
 
     def equip(self, player):
         if not self.is_equipped:
-            if self.model == self.lying_model:
-                self.hide()
-
-            self.model = None
+            self.model = self.animated_model
+            self.model.hide()
             self.actor.reparent_to(self)
             self.actor.loop('idle')
+            self.position = (0, 0, 0)
+            self.scale = 0.02
+
+            player.current_weapon = self
+            player.parent.weapons.remove(self)
+            self.parent = player.camera_pivot
             self.is_equipped = True
 
-        # Прив'язка зброї до гравця
-        player.current_weapon = self
-        self.parent = player.camera_pivot
-
-    def drop(self):
+    def drop(self, player):
         if self.is_equipped:
             self.actor.detachNode()
             self.model = self.lying_model
-            self.parent = camera.ui.parent
-            self.position = camera.world_position + camera.forward * 2
+            self.parent = player.parent
+            self.parent.weapons.append(self)
+            self.position = player.position - (0, 1, 0)
+            self.scale = 0.05
             self.is_equipped = False
 
     def attack(self):
@@ -88,7 +90,7 @@ class Weapon(Entity):
             mouse.hovered_entity.hp -= self.damage
             mouse.hovered_entity.blink(color.red)
 
-    def animation(self, name, is_loop):
+    def animation(self, name, is_loop, on_complete=None):
         if self.actor.getCurrentAnim() == name and self.is_looping == is_loop:
             return
 
@@ -101,7 +103,10 @@ class Weapon(Entity):
             self.actor.loop(name)
         else:
             self.actor.play(name)
-            invoke(self.actor.loop, 'idle', delay=get_anim_duration(self.actor, name))
+            if on_complete:
+                invoke(on_complete, delay=get_anim_duration(self.actor, name))
+            else:
+                invoke(self.actor.loop, 'idle', delay=get_anim_duration(self.actor, name))
 
         self.is_looping = is_loop
 

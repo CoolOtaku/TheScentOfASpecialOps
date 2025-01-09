@@ -3,6 +3,9 @@ import random
 from ursina import Ursina, Entity, window
 from ursina.shaders import lit_with_shadows_shader
 
+from panda3d.core import loadPrcFileData
+loadPrcFileData("", "interpolate-frames 1")
+
 from screens.screen_manager import ScreenManager
 from screens.game_screen import GameScreen
 from screens.menu_screen import MenuScreen
