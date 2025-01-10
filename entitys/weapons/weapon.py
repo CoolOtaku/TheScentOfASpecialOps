@@ -1,20 +1,18 @@
 from enum import Enum
 
 from direct.actor.Actor import Actor
-from ursina import Entity, Audio, color, invoke, mouse, camera
+from ursina import Entity, Audio, color, invoke, mouse, SpriteSheetAnimation
 
 from const import get_anim_duration
 
 class WeaponType(Enum):
     HANDS = 0
-    PISTOL = 1
-    RIFLE = 2
+    KNIFE = 1
+    PISTOL = 2
+    RIFLE = 3
 
 class Weapon(Entity):
-    def __init__(self, parent, weapon_type=WeaponType.HANDS,
-                 animated_model='assets/models/players/hands.glb', lying_model=None,
-                 attack_sound='assets/sound/punch.mp3',
-                 cooldown=0.9, **kwargs):
+    def __init__(self, parent, weapon_id='hands', name='Hands', weapon_type=WeaponType.HANDS, cooldown=2, **kwargs):
         super().__init__(
             collider='mesh',
             rotation_x=180,
@@ -22,16 +20,15 @@ class Weapon(Entity):
             parent=parent,
             **kwargs
         )
-        self.animated_model = animated_model
-        self.lying_model = lying_model
-
+        self.name = name
         self.is_equipped = True if weapon_type == WeaponType.HANDS else False
-        self.actor = Actor(animated_model)
+
+        self.actor = Actor(f'assets/models/weapons/{weapon_id}.glb')
         if self.is_equipped:
             self.actor.reparent_to(self)
             self.actor.loop('idle')
 
-        self.model = lying_model
+        self.model = f'assets/models/weapons/{weapon_id}_lying.glb'
         self.scale = 0.02 if self.is_equipped else 0.05
 
         self.weapon_type = weapon_type
@@ -41,37 +38,47 @@ class Weapon(Entity):
 
         self.is_looping = False
 
-        self.attack_sound = Audio(attack_sound, autoplay=False)
-        self.muzzle_flash = Entity(
-            parent=self,
-            model='quad',
-            scale=0.5,
-            color=color.yellow,
-            enabled=False
+        self.draw_sound = Audio(f'assets/sound/weapons/{weapon_id}_draw.wav', autoplay=False)
+        self.attack_sound = Audio(f'assets/sound/weapons/{weapon_id}_attack.wav', autoplay=False)
+        self.muzzle_flash = SpriteSheetAnimation(
+            texture='assets/textures/other/muzzle_flash_sprite.png',
+            tileset_size=(4, 2),
+            fps=30,
+            loop=False,
+            parent=parent,
+            position=(0.06, -0.06, 1),
+            scale=0.2,
+            visible=False,
+            animations={'flash': ((0, 0), (3, 1))}
         )
 
     def equip(self, player):
         if not self.is_equipped:
-            self.model = self.animated_model
             self.model.hide()
             self.actor.reparent_to(self)
-            self.actor.loop('idle')
+            self.animation('draw', False)
+            self.draw_sound.play()
             self.position = (0, 0, 0)
             self.scale = 0.02
+            if self.scale_x > 0:
+                self.scale_x = -abs(self.scale_x)
 
             player.current_weapon = self
             player.parent.weapons.remove(self)
             self.parent = player.camera_pivot
+            self.muzzle_flash.parent = player.camera_pivot
             self.is_equipped = True
 
     def drop(self, player):
         if self.is_equipped:
+            self.model.show()
             self.actor.detachNode()
-            self.model = self.lying_model
-            self.parent = player.parent
-            self.parent.weapons.append(self)
             self.position = player.position - (0, 1, 0)
             self.scale = 0.05
+
+            self.parent = player.parent
+            self.muzzle_flash.parent = player.parent
+            self.parent.weapons.append(self)
             self.is_equipped = False
 
     def attack(self):
@@ -79,32 +86,41 @@ class Weapon(Entity):
             return
 
         self.on_cooldown = True
-        self.muzzle_flash.enabled = True
-        self.animation('attack', False)
-        self.attack_sound.play()
 
-        invoke(self.muzzle_flash.disable, delay=0.05)
-        invoke(setattr, self, 'on_cooldown', False, delay=self.cooldown)
+        if self.weapon_type not in [WeaponType.HANDS, WeaponType.KNIFE]:
+            self.actor.stop()
+
+        self.animation('attack', False, self.finish_attack)
+
+        if self.weapon_type not in [WeaponType.HANDS, WeaponType.KNIFE]:
+            self.muzzle_flash.visible = True
+            self.muzzle_flash.play_animation('flash')
+            invoke(setattr, self.muzzle_flash, 'visible', False, delay=0.5)
+
+        self.attack_sound.play()
 
         if mouse.hovered_entity and hasattr(mouse.hovered_entity, 'hp'):
             mouse.hovered_entity.hp -= self.damage
             mouse.hovered_entity.blink(color.red)
 
-    def animation(self, name, is_loop, on_complete=None):
-        if self.actor.getCurrentAnim() == name and self.is_looping == is_loop:
-            return
+        invoke(setattr, self, 'on_cooldown', False, delay=self.cooldown)
 
-        if name == 'run' and not is_loop:
-            self.is_looping = is_loop
-            self.actor.loop('idle')
+    def finish_attack(self):
+        if mouse.left:
+            self.attack()
+        else:
+            self.animation('idle', True)
+
+    def animation(self, name, is_loop, function_after=None, *args):
+        if self.actor.getCurrentAnim() == name and self.is_looping == is_loop:
             return
 
         if is_loop:
             self.actor.loop(name)
         else:
             self.actor.play(name)
-            if on_complete:
-                invoke(on_complete, delay=get_anim_duration(self.actor, name))
+            if function_after:
+                invoke(function_after, *args, delay=get_anim_duration(self.actor, name))
             else:
                 invoke(self.actor.loop, 'idle', delay=get_anim_duration(self.actor, name))
 
