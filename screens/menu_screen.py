@@ -23,12 +23,19 @@ class MenuScreen(BaseScreen):
         GameButton(
             text='Грати',
             scale=(3, 0.9), origin=(0, 0),
-            on_click=lambda: self.screen_manager.set_active_screen("game"),
+            on_click=lambda: self.screen_manager.set_active_screen('game'),
             parent=self,
         )
         GameButton(
             text='Вийти',
             scale=(3, 0.9), origin=(0, 2),
             on_click=application.quit,
+            parent=self,
+        )
+        GameButton(
+            text=' ',
+            icon_texture='assets/icons/editor.png',
+            scale=(3, 0.9), origin=(-1.5, 3.5),
+            on_click=lambda: self.screen_manager.set_active_screen('editor'),
             parent=self,
         )
