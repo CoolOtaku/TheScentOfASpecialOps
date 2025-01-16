@@ -3,13 +3,15 @@ from enum import Enum
 from direct.actor.Actor import Actor
 from ursina import Entity, Audio, color, invoke, mouse, SpriteSheetAnimation
 
-from const import get_anim_duration
+from const import get_anim_duration, PATH_WEAPON_MODELS, PATH_WEAPON_SOUNDS
+
 
 class WeaponType(Enum):
     HANDS = 0
     KNIFE = 1
     PISTOL = 2
     RIFLE = 3
+
 
 class Weapon(Entity):
     def __init__(self, parent, weapon_id='hands', name='Hands', weapon_type=WeaponType.HANDS, cooldown=2, **kwargs):
@@ -23,12 +25,12 @@ class Weapon(Entity):
         self.name = name
         self.is_equipped = True if weapon_type == WeaponType.HANDS else False
 
-        self.actor = Actor(f'assets/models/weapons/{weapon_id}.glb')
+        self.actor = Actor(f'{PATH_WEAPON_MODELS}{weapon_id}.glb')
         if self.is_equipped:
             self.actor.reparent_to(self)
             self.actor.loop('idle')
 
-        self.model = f'assets/models/weapons/{weapon_id}_lying.glb'
+        self.model = f'{PATH_WEAPON_MODELS}{weapon_id}_lying.glb'
         self.scale = 0.02 if self.is_equipped else 0.05
 
         self.weapon_type = weapon_type
@@ -38,8 +40,8 @@ class Weapon(Entity):
 
         self.is_looping = False
 
-        self.draw_sound = Audio(f'assets/sound/weapons/{weapon_id}_draw.wav', autoplay=False)
-        self.attack_sound = Audio(f'assets/sound/weapons/{weapon_id}_attack.wav', autoplay=False)
+        self.draw_sound = Audio(f'{PATH_WEAPON_SOUNDS}{weapon_id}_draw.wav', autoplay=False)
+        self.attack_sound = Audio(f'{PATH_WEAPON_SOUNDS}{weapon_id}_attack.wav', autoplay=False)
         self.muzzle_flash = SpriteSheetAnimation(
             texture='assets/textures/other/muzzle_flash_sprite.png',
             tileset_size=(4, 2),

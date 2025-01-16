@@ -6,36 +6,39 @@ from const import PATH_BACKGROUND_TEXTURE, PATH_TITLE_FONT
 
 class MenuScreen(BaseScreen):
     def __init__(self, screen_manager):
-        super().__init__()
-        self.screen_manager = screen_manager
+        super().__init__(screen_manager)
 
     def load(self):
-        Sprite(
+        """Sprite(
             texture=PATH_BACKGROUND_TEXTURE,
             scale=2, position=(0, 0), z=0,
             parent=self
-        )
+        )"""
         Text(
             text='Головне меню', font=PATH_TITLE_FONT, color=color.dark_text,
             scale=20, origin=(0, -6), z=-1,
             parent=self
         )
+        Sprite(
+            texture='assets/icons/ua.png',
+            scale=0.3, origin=(0, -1), z=-1,
+            parent=self
+        )
         GameButton(
             text='Грати',
-            scale=(3, 0.9), origin=(0, 0),
-            on_click=lambda: self.screen_manager.set_active_screen('game'),
-            parent=self,
+            origin=(0, 0),
+            on_click=lambda: self.screen_manager.set_screen('game'),
+            parent=self
         )
         GameButton(
             text='Вийти',
-            scale=(3, 0.9), origin=(0, 2),
+            origin=(0, 2),
             on_click=application.quit,
-            parent=self,
+            parent=self
         )
         GameButton(
-            text=' ',
             icon_texture='assets/icons/editor.png',
-            scale=(3, 0.9), origin=(-1.5, 3.5),
-            on_click=lambda: self.screen_manager.set_active_screen('editor'),
-            parent=self,
+            origin=(-6, 3),
+            on_click=lambda: self.screen_manager.set_screen('editor'),
+            parent=self
         )

@@ -9,10 +9,9 @@ class ScreenManager:
             'instance': None
         }
 
-    def set_active_screen(self, name):
+    def set_screen(self, name):
         if self.active_screen:
-            self.screens[self.active_screen]['instance'].hide()
-            self.screens[self.active_screen]['instance'].clear()
+            self.screens[self.active_screen]['instance'].destroy()
 
         if not self.screens[name]['instance']:
             screen_instance = self.screens[name]['class'](self)

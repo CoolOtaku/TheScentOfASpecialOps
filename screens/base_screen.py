@@ -1,15 +1,20 @@
-from ursina import Entity
+from ursina import Entity, destroy
+
 
 class BaseScreen(Entity):
-    def __init__(self):
-        super().__init__(visible = False)
+    def __init__(self, screen_manager):
+        super().__init__()
+        self.screen_manager = screen_manager
 
     def load(self):
         pass
 
-    def clear(self):
+    def destroy(self):
         for child in self.children:
             child.disable()
-            child.parent = None
-        self.children = []
+            destroy(child)
+
+        self.children.clear()
         self.disable()
+        destroy(self)
+        del self

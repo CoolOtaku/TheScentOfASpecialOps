@@ -1,37 +1,44 @@
-from ursina import EditorCamera, Entity, mouse, application, held_keys
+from ursina import destroy, mouse, application
 
+from entitys.ui.game_pause_menu import GamePauseMenu
 from screens.base_screen import BaseScreen
 from entitys.player import Player
 from map import Map
 
 class GameScreen(BaseScreen):
     def __init__(self, screen_manager):
-        super().__init__()
-        self.screen_manager = screen_manager
+        super().__init__(screen_manager)
 
     def load(self):
-        self.editor_camera = EditorCamera(enabled=False, ignore_paused=True)
+        self.pause_menu = GamePauseMenu(self)
 
-        self.map = Map()
-        self.player = Player(parent=self.map)
+        self.map = Map(parent=self)
+        #self.player = Player(parent=self.map)
 
-        shootables_parent = Entity()
-        mouse.traverse_target = shootables_parent
+        #shootables_parent = Entity()
+        #mouse.traverse_target = shootables_parent
 
-        def pause_input(key):
-            if key == 'tab':
-                self.editor_camera.enabled = not self.editor_camera.enabled
+    def input(self, key):
+        if key == 'escape':
+            self.resume_game()
 
-                self.player.visible_self = self.editor_camera.enabled
-                self.player.cursor.enabled = not self.editor_camera.enabled
-                if self.player.current_weapon:
-                    self.player.current_weapon.enabled = not self.editor_camera.enabled
-                mouse.locked = not self.editor_camera.enabled
-                self.editor_camera.position = self.player.position
+    def resume_game(self):
+        self.pause_menu.enabled = not self.pause_menu.enabled
+        mouse.visible = self.pause_menu.enabled
+        mouse.locked = not self.pause_menu.enabled
+        application.paused = self.pause_menu.enabled
 
-                application.paused = self.editor_camera.enabled
+    def disable(self):
+        self.pause_menu.disable()
+        destroy(self.pause_menu)
 
-        self.pause_handler = Entity(ignore_paused=True, input=pause_input)
+        self.map.disable()
 
-    def update(self):
-        self.player.update()
+        for child in self.children:
+            child.disable()
+            destroy(child)
+
+        self.children.clear()
+        super().disable()
+        destroy(self)
+        del self

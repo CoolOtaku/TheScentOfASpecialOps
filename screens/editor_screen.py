@@ -5,8 +5,7 @@ from screens.base_screen import BaseScreen
 
 class EditorScreen(BaseScreen):
     def __init__(self, screen_manager):
-        super().__init__()
-        self.screen_manager = screen_manager
+        super().__init__(screen_manager)
 
         self.selected_entity = None
         self.is_animating = False

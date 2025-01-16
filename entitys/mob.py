@@ -2,12 +2,12 @@ from ursina import Entity
 from direct.actor.Actor import Actor
 
 class Mob(Entity):
-    def __init__(self, position=(10, 0, 0)):
+    def __init__(self, **kwargs):
         super().__init__(
-            position=position,
             rotation=(0, 180, 0),
             scale=(1, 2, 1),
             collider='box',
+            **kwargs
         )
         self.speed = 5
 
