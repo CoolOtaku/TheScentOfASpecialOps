@@ -104,7 +104,7 @@ class EditorScreen(BaseScreen):
         player.position = Vec3(0, 2, 0)
 
     def stop(self):
-        app.quit()
+        self.screen_manager.set_screen('menu')
 
     def update_gizmo(self):
         if self.selected_entity and not self.gizmo:

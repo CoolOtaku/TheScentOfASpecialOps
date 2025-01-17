@@ -6,6 +6,7 @@ from entitys.mob import Mob
 
 from entitys.weapons.ak47 import Ak47
 
+
 class Map(Entity):
     def __init__(self, parent):
         super().__init__()
@@ -30,9 +31,9 @@ class Map(Entity):
         self.build_map()
         self.build_walls()
 
-        self.sun = DirectionalLight(parent=self)
+        self.sun = DirectionalLight()
         self.sun.look_at((1, -1, -1))
-        Sky(texture='sky_sunset', parent=self)
+        Sky(texture='assets/textures/maps/sky.jpg')
 
         self.mob = Mob(position=(10, 0, 0), parent=self)
 
@@ -68,14 +69,20 @@ class Map(Entity):
         self.weapons.append(pistol)
 
     def disable(self):
+        self.map_data.clear()
+        self.weapons.clear()
+
         for child in self.children:
             child.disable()
             try:
                 destroy(child)
             except Exception as e:
-                print(f'Виникла помилка при видаленні об\'єкта: {e}')
+                print(f'Виникла помилка при видаленні об\'єкта мапи: {e}')
 
         self.children.clear()
         super().disable()
-        destroy(self)
+        try:
+            destroy(self)
+        except Exception as e:
+            print(f'Виникла помилка при самої мапи: {e}')
         del self

@@ -16,7 +16,7 @@ class WeaponType(Enum):
 class Weapon(Entity):
     def __init__(self, parent, weapon_id='hands', name='Hands', weapon_type=WeaponType.HANDS, cooldown=2, **kwargs):
         super().__init__(
-            collider='mesh',
+            collider='box' if weapon_type != WeaponType.HANDS else None,
             rotation_x=180,
             rotation_z=180,
             parent=parent,
@@ -56,6 +56,7 @@ class Weapon(Entity):
 
     def equip(self, player):
         if not self.is_equipped:
+            self.collider = None
             self.model.hide()
             self.actor.reparent_to(self)
             self.animation('draw', False)
@@ -73,6 +74,7 @@ class Weapon(Entity):
 
     def drop(self, player):
         if self.is_equipped:
+            self.collider = 'box'
             self.model.show()
             self.actor.detachNode()
             self.position = player.position - (0, 1, 0)

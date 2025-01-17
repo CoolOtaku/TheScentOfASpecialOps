@@ -4,16 +4,19 @@ from const import PATH_TEXT_FONT, PATH_BUTTON_TEXTURE
 
 
 class GameButton(Button):
-    def __init__(self, icon_texture=None, is_small=False, **kwargs):
+    def __init__(self, icon_texture=None, is_in_window=False, **kwargs):
         super().__init__(
             texture=PATH_BUTTON_TEXTURE,
             color=color.white, z=-1,
-            scale=(3 if not is_small else 0.6, 0.9 if not is_small else 0.18),
+            scale=(3 if not is_in_window else 0.4, 0.9 if not is_in_window else 0.12),
             **kwargs
         )
         if self.text_entity:
             self.text_entity.font = PATH_TEXT_FONT
-            self.text_entity.color = color.white
+            self.text_color = color.white
+            self.text_entity.unlit = True
+            if is_in_window:
+                self.text_entity.scale = (5, 15)
 
         if icon_texture:
             self.icon = icon_texture

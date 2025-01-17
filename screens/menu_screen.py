@@ -1,4 +1,4 @@
-from ursina import Sprite, Text, color, application
+from ursina import Sprite, Text, application, color
 
 from screens.base_screen import BaseScreen
 from entitys.ui.game_button import GameButton
@@ -9,11 +9,11 @@ class MenuScreen(BaseScreen):
         super().__init__(screen_manager)
 
     def load(self):
-        """Sprite(
+        Sprite(
             texture=PATH_BACKGROUND_TEXTURE,
             scale=2, position=(0, 0), z=0,
             parent=self
-        )"""
+        )
         Text(
             text='Головне меню', font=PATH_TITLE_FONT, color=color.dark_text,
             scale=20, origin=(0, -6), z=-1,

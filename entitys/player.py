@@ -6,7 +6,7 @@ from entitys.weapons.weapon import Weapon, WeaponType
 
 class Player(FirstPersonController):
     def __init__(self, parent):
-        super().__init__(speed=5, origin_y=0.5, parent=parent)
+        super().__init__(speed=10, origin_y=0.5, parent=parent)
         self.collider = BoxCollider(self, (0, 1, 0), (1, 2, 1))
         self.cursor.texture = 'assets/textures/other/scope.png'
         self.cursor.color = color.white
@@ -17,8 +17,8 @@ class Player(FirstPersonController):
         self.current_weapon = self.hands
 
         self.is_running = False
-        self.walk_speed = 5
-        self.run_speed = 8
+        self.walk_speed = 10
+        self.run_speed = 15
 
     def update(self):
         super().update()

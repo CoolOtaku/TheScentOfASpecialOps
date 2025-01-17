@@ -21,14 +21,14 @@ class GamePauseMenu(Entity):
         GameButton(
             text='Продовжити',
             position=(0, 0),
-            is_small=True,
+            is_in_window=True,
             on_click=lambda: game_screen.resume_game(),
             parent=self
         )
         GameButton(
             text='Вийти в меню',
             position=(0, -0.2),
-            is_small=True,
+            is_in_window=True,
             on_click=lambda: game_screen.screen_manager.set_screen('menu'),
             parent=self
         )
