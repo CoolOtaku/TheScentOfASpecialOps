@@ -13,13 +13,13 @@ class EditorScreen(BaseScreen):
 
         self.menu_objects_primitive = None
 
+        self.pressed_buttons = {}
         self.position_buttons = None
         self.scale_buttons = None
         self.rotation_buttons = None
 
-        self.position_text = None
-        self.scale_text = None
-        self.rotation_text = None
+        self.input_fields = {}
+        self.last_values = {}
 
         self.selected_entity = None
         self.is_animating = False
@@ -44,48 +44,90 @@ class EditorScreen(BaseScreen):
         )
 
         self.position_buttons = ButtonList(button_dict={
-            'PX+': Func(self.position_entity, 'x', 0.1),
-            'PX-': Func(self.position_entity, 'x', -0.1),
-            'PY+': Func(self.position_entity, 'y', 0.1),
-            'PY-': Func(self.position_entity, 'y', -0.1),
-            'PZ+': Func(self.position_entity, 'z', 0.1),
-            'PZ-': Func(self.position_entity, 'z', -0.1),
+            'PX+': lambda: self.start_holding_button('PX+', 'x', 0.02),
+            'PX-': lambda: self.start_holding_button('PX-', 'x', -0.02),
+            'PY+': lambda: self.start_holding_button('PY+', 'y', 0.02),
+            'PY-': lambda: self.start_holding_button('PY-', 'y', -0.02),
+            'PZ+': lambda: self.start_holding_button('PZ+', 'z', 0.02),
+            'PZ-': lambda: self.start_holding_button('PZ-', 'z', -0.02)
         }, position=(0.691, -0.27), button_height=1.5, width=0.06, on_click=self.rotate_entity)
         self.scale_buttons = ButtonList(button_dict={
-            'SX+': Func(self.scale_entity, 'x', 0.1),
-            'SX-': Func(self.scale_entity, 'x', -0.1),
-            'SY+': Func(self.scale_entity, 'y', 0.1),
-            'SY-': Func(self.scale_entity, 'y', -0.1),
-            'SZ+': Func(self.scale_entity, 'z', 0.1),
-            'SZ-': Func(self.scale_entity, 'z', -0.1),
+            'SX+': lambda: self.start_holding_button('SX+', 'x', 0.02),
+            'SX-': lambda: self.start_holding_button('SX-', 'x', -0.02),
+            'SY+': lambda: self.start_holding_button('SY+', 'y', 0.02),
+            'SY-': lambda: self.start_holding_button('SY-', 'y', -0.02),
+            'SZ+': lambda: self.start_holding_button('SZ+', 'z', 0.02),
+            'SZ-': lambda: self.start_holding_button('SZ-', 'z', -0.02)
         }, position=(0.755, -0.27), button_height=1.5, width=0.06, on_click=self.rotate_entity)
         self.rotation_buttons = ButtonList(button_dict={
-            'RX+': Func(self.rotate_entity, 'x', 10),
-            'RX-': Func(self.rotate_entity, 'x', -10),
-            'RY+': Func(self.rotate_entity, 'y', 10),
-            'RY-': Func(self.rotate_entity, 'y', -10),
-            'RZ+': Func(self.rotate_entity, 'z', 10),
-            'RZ-': Func(self.rotate_entity, 'z', -10),
+            'RX+': lambda: self.start_holding_button('RX+', 'x', 1),
+            'RX-': lambda: self.start_holding_button('RX-', 'x', -1),
+            'RY+': lambda: self.start_holding_button('RY+', 'y', 1),
+            'RY-': lambda: self.start_holding_button('RY-', 'y', -1),
+            'RZ+': lambda: self.start_holding_button('RZ+', 'z', 1),
+            'RZ-': lambda: self.start_holding_button('RZ-', 'z', -1)
         }, position=(0.82, -0.27), button_height=1.5, width=0.06, on_click=self.rotate_entity)
 
-        self.position_text = Text(position=(0.25, -0.425), color=color.black)
-        self.scale_text = Text(position=(0.25, -0.45), color=color.black)
-        self.rotation_text = Text(position=(0.25, -0.475), color=color.black)
+        self.input_fields = {
+            'position': InputField(position=(0.3, -0.36), color=color.black, on_value_changed=self.validate_and_update_position),
+            'scale': InputField(position=(0.3, -0.415), color=color.black, on_value_changed=self.validate_and_update_scale),
+            'rotation': InputField(position=(0.3, -0.47), color=color.black, on_value_changed=self.validate_and_update_rotation),
+        }
+        self.last_values = {
+            'position': self.input_fields['position'].text,
+            'scale': self.input_fields['scale'].text,
+            'rotation': self.input_fields['rotation'].text,
+        }
+        self.last_values = {key: '' for key in self.input_fields}
 
         self.editor_camera = EditorCamera()
 
+    @staticmethod
+    def validate_input(value):
+        if re.fullmatch(r'^-?\d+(\.\d+)?(,-?\d+(\.\d+)?){2}$', value):
+            return True
+        return False
+
+    def validate_and_update_position(self):
+        self.update_entity_attribute('position', self.input_fields['position'].text, lambda v: Vec3(*map(float, v.split(','))))
+
+    def validate_and_update_scale(self):
+        self.update_entity_attribute('scale', self.input_fields['scale'].text, lambda v: Vec3(*map(float, v.split(','))))
+
+    def validate_and_update_rotation(self):
+        self.update_entity_attribute('rotation', self.input_fields['rotation'].text, lambda v: Vec3(*map(float, v.split(','))))
+
+    def update_entity_attribute(self, attribute, value, parser):
+        if self.validate_input(value):
+            if self.selected_entity:
+                setattr(self.selected_entity, attribute, parser(value))
+        else:
+            print(f'Некоректне значення для {attribute}!')
+
     def input(self, key):
+        if key.endswith('up'):
+            self.stop_holding_button()
+
         if key == 'left mouse down':
             self.on_mouse_down()
         elif key == 'u':
             self.unlock_mouse()
 
     def update(self):
+        for button_name, (axis, value) in self.pressed_buttons.items():
+            if 'P' in button_name:
+                self.position_entity(axis, value)
+            elif 'S' in button_name:
+                self.scale_entity(axis, value)
+            elif 'R' in button_name:
+                self.rotate_entity(axis, value)
+
         if self.selected_entity:
-            self.position_text.text = f'Позиція: ({self.selected_entity.x:.2f}, {self.selected_entity.y:.2f}, {self.selected_entity.z:.2f})'
-            self.scale_text.text = f'Масштаб: ({self.selected_entity.scale_x:.2f}, {self.selected_entity.scale_y:.2f}, {self.selected_entity.scale_z:.2f})'
-            self.rotation_text.text = f'Обертання: ({self.selected_entity.rotation_x:.2f}, {self.selected_entity.rotation_y:.2f}, {self.selected_entity.rotation_z:.2f})'
-        # Animate entity if toggled
+            for key, input_field in self.input_fields.items():
+                new_value = f"{getattr(self.selected_entity, key).x:.2f},{getattr(self.selected_entity, key).y:.2f},{getattr(self.selected_entity, key).z:.2f}"
+                if self.last_values[key] != new_value:
+                    input_field.text = new_value
+                    self.last_values[key] = new_value
 
         if self.is_animating and self.selected_entity:
             self.selected_entity.rotation_y += 1
@@ -158,6 +200,12 @@ class EditorScreen(BaseScreen):
 
     def toggle_animation(self):
         self.is_animating = not self.is_animating
+
+    def start_holding_button(self, button_name, axis, value):
+        self.pressed_buttons[button_name] = (axis, value)
+
+    def stop_holding_button(self):
+        self.pressed_buttons.clear()
 
     def position_entity(self, axis, direction):
         if self.selected_entity:
