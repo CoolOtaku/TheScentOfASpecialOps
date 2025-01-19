@@ -1,7 +1,7 @@
 from ursina import Sprite, Text, application, color
 
 from screens.base_screen import BaseScreen
-from entitys.ui.game_button import GameButton
+from src.ui.game_button import GameButton
 from const import PATH_BACKGROUND_TEXTURE, PATH_TITLE_FONT
 
 class MenuScreen(BaseScreen):

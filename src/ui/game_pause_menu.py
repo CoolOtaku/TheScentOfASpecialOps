@@ -1,7 +1,7 @@
 from ursina import Entity, Text, camera, color
 
 from const import PATH_WINDOW_TEXTURE, PATH_TITLE_FONT
-from entitys.ui.game_button import GameButton
+from src.ui.game_button import GameButton
 
 
 class GamePauseMenu(Entity):

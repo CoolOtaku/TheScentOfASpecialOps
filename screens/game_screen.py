@@ -1,6 +1,7 @@
-from ursina import destroy, mouse
+from ursina import mouse
 
-from entitys.ui.game_pause_menu import GamePauseMenu
+from const import destroy_entity, destroy_list
+from src.ui.game_pause_menu import GamePauseMenu
 from screens.base_screen import BaseScreen
 from entitys.player import Player
 from map import Map
@@ -31,19 +32,11 @@ class GameScreen(BaseScreen):
         self.is_paused = self.pause_menu.enabled
 
     def disable(self):
-        self.pause_menu.disable()
-        destroy(self.pause_menu)
+        destroy_entity(self.pause_menu)
 
-        self.map.disable()
-        destroy(self.map)
+        destroy_entity(self.map)
+        destroy_entity(self.player)
 
-        destroy(self.player)
+        destroy_list(self.children)
 
-        for child in self.children:
-            child.disable()
-            destroy(child)
-
-        self.children.clear()
-        super().disable()
-        destroy(self)
-        del self
+        destroy_entity(self)

@@ -1,5 +1,7 @@
 from ursina import Entity, destroy
 
+from const import destroy_list, destroy_entity
+
 
 class BaseScreen(Entity):
     def __init__(self, screen_manager):
@@ -10,11 +12,5 @@ class BaseScreen(Entity):
         pass
 
     def destroy(self):
-        for child in self.children:
-            child.disable()
-            destroy(child)
-
-        self.children.clear()
-        self.disable()
-        destroy(self)
-        del self
+        destroy_list(self.children)
+        destroy_entity(self)
