@@ -1,12 +1,13 @@
 from entitys.primitive.primitive_object import PrimitiveObject
 
 
-class Sphere(PrimitiveObject):
+class IcoSphere(PrimitiveObject):
     def __init__(self, **kwargs):
         super().__init__(
-            model='sphere',
-            texture='reflection_map_3',
+            model='icosphere',
+            texture='noise',
+            position=(0, 1, 0),
             collider='sphere',
-            name='Sphere',
+            name='IcoSphere',
             **kwargs
         )

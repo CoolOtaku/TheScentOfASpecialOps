@@ -38,5 +38,4 @@ class GameScreen(BaseScreen):
         destroy_entity(self.player)
 
         destroy_list(self.children)
-
         destroy_entity(self)

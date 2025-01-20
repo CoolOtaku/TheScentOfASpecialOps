@@ -6,12 +6,17 @@ from screens.base_screen import BaseScreen
 from src.object_manager import ObjectManager
 from const import validate_input_entity_property, destroy_entity, destroy_list, destroy_dict
 
-from entitys.primitive.plane import Plane
-from entitys.primitive.cube import Cube
-from entitys.primitive.sphere import Sphere
-from entitys.primitive.quad import Quad
 from entitys.primitive.wireframe_cube import WireframeCube
+from entitys.primitive.cube_uv_top import CubeUVTop
+from entitys.primitive.ico_sphere import IcoSphere
+from entitys.primitive.sky_dome import SkyDome
+from entitys.primitive.diamond import Diamond
+from entitys.primitive.sphere import Sphere
 from entitys.primitive.circle import Circle
+from entitys.primitive.plane import Plane
+from entitys.primitive.arrow import Arrow
+from entitys.primitive.cube import Cube
+from entitys.primitive.quad import Quad
 
 
 class EditorScreen(BaseScreen):
@@ -33,7 +38,7 @@ class EditorScreen(BaseScreen):
         self.last_values_PSR = {}
 
         self.object_manager = None
-        self.selected_entity = None
+        self.selected_object = None
         self.editor_camera = None
         self.player = None
 
@@ -56,10 +61,15 @@ class EditorScreen(BaseScreen):
             buttons=[
                 DropdownMenuButton('Площина', on_click=lambda: self.spawn_object(Plane)),
                 DropdownMenuButton('Куб', on_click=lambda: self.spawn_object(Cube)),
-                DropdownMenuButton('Сфера', on_click=lambda: self.spawn_object(Sphere)),
-                DropdownMenuButton('Чотирикутник', on_click=lambda: self.spawn_object(Quad)),
                 DropdownMenuButton('Каркасний куб', on_click=lambda: self.spawn_object(WireframeCube)),
+                DropdownMenuButton('Куб із UV зверху', on_click=lambda: self.spawn_object(CubeUVTop)),
+                DropdownMenuButton('Чотирикутник', on_click=lambda: self.spawn_object(Quad)),
+                DropdownMenuButton('Сфера', on_click=lambda: self.spawn_object(Sphere)),
                 DropdownMenuButton('Коло', on_click=lambda: self.spawn_object(Circle)),
+                DropdownMenuButton('Іco сфера', on_click=lambda: self.spawn_object(IcoSphere)),
+                DropdownMenuButton('Небесний купол', on_click=lambda: self.spawn_object(SkyDome)),
+                DropdownMenuButton('Діамант', on_click=lambda: self.spawn_object(Diamond)),
+                DropdownMenuButton('Стрілка', on_click=lambda: self.spawn_object(Arrow))
             ],
             position=(-0.88, 0.45), z=-99
         )
@@ -124,16 +134,16 @@ class EditorScreen(BaseScreen):
             elif 'R' in button_name:
                 self.update_entity_attribute('rotation', axis, value)
 
-        if self.selected_entity:
+        if self.selected_object:
             for key, input_field in self.input_fields_PSR.items():
-                new_value = f"{getattr(self.selected_entity, key).x:.2f},{getattr(self.selected_entity, key).y:.2f},{getattr(self.selected_entity, key).z:.2f}"
+                new_value = f"{getattr(self.selected_object, key).x:.2f},{getattr(self.selected_object, key).y:.2f},{getattr(self.selected_object, key).z:.2f}"
                 if self.last_values_PSR[key] != new_value:
                     input_field.text = new_value
                     self.last_values_PSR[key] = new_value
 
     def play(self):
         if self.editor_camera:
-            destroy(self.editor_camera)
+            destroy_entity(self.editor_camera)
             self.editor_camera = None
         if self.player:
             destroy(self.player)
@@ -142,7 +152,7 @@ class EditorScreen(BaseScreen):
 
     def stop(self):
         if self.player:
-            destroy(self.player)
+            destroy_entity(self.player)
             self.player = None
         self.editor_camera = EditorCamera()
 
@@ -151,12 +161,12 @@ class EditorScreen(BaseScreen):
 
     def spawn_object(self, obj_class):
         obj = self.object_manager.create_object(obj_class)
-        self.select_entity(obj)
+        self.select_object(obj)
 
     def delete_object(self):
-        if self.selected_entity:
-            self.object_manager.remove_object(self.selected_entity)
-            self.selected_entity = None
+        if self.selected_object:
+            self.object_manager.remove_object(self.selected_object)
+            self.selected_object = None
 
     def on_mouse_down(self):
         if mouse.hovered_entity:
@@ -164,14 +174,14 @@ class EditorScreen(BaseScreen):
                     or isinstance(mouse.hovered_entity.parent, ButtonList)):
                 return
 
-            self.select_entity(mouse.hovered_entity)
+            self.select_object(mouse.hovered_entity)
 
-    def select_entity(self, entity):
-        if self.selected_entity:
-            self.selected_entity.color = color.white
-        self.selected_entity = entity
-        self.selected_entity.color = color.yellow
-        print(f'Вибрано об\'єкт: {entity.name}')
+    def select_object(self, object):
+        if self.selected_object:
+            self.selected_object.color = color.white
+        self.selected_object = object
+        self.selected_object.color = color.violet
+        print(f'Вибрано об\'єкт: {object.name}')
 
     def start_holding_button(self, button_name, axis, value):
         self.pressed_buttons[button_name] = (axis, value)
@@ -180,15 +190,15 @@ class EditorScreen(BaseScreen):
         self.pressed_buttons.clear()
 
     def update_entity_attribute(self, attribute, axis, value):
-        if self.selected_entity:
-            attr = list(getattr(self.selected_entity, attribute))
+        if self.selected_object:
+            attr = list(getattr(self.selected_object, attribute))
             if axis == 'x':
                 attr[0] += value
             elif axis == 'y':
                 attr[1] += value
             elif axis == 'z':
                 attr[2] += value
-            setattr(self.selected_entity, attribute, tuple(attr))
+            setattr(self.selected_object, attribute, tuple(attr))
 
     def validate_and_update_position(self):
         self.validate_and_update('position', self.input_fields_PSR['position'].text, lambda v: Vec3(*map(float, v.split(','))))
@@ -201,8 +211,8 @@ class EditorScreen(BaseScreen):
 
     def validate_and_update(self, attribute, value, parser):
         if validate_input_entity_property(value):
-            if self.selected_entity:
-                setattr(self.selected_entity, attribute, parser(value))
+            if self.selected_object:
+                setattr(self.selected_object, attribute, parser(value))
         else:
             print(f'Некоректне значення для {attribute}!')
 
@@ -213,8 +223,7 @@ class EditorScreen(BaseScreen):
 
     @staticmethod
     def add_sky():
-        DirectionalLight().look_at((1, -1, -1))
-        Sky()
+        Sky(texture='assets/textures/maps/sky1.jpg')
 
     def disable(self):
         destroy_entity(self.button_play)
@@ -239,7 +248,7 @@ class EditorScreen(BaseScreen):
         destroy_dict(self.last_values_PSR)
 
         destroy_list(self.object_manager.objects)
-        destroy_entity(self.selected_entity)
+        destroy_entity(self.selected_object)
         destroy_entity(self.editor_camera)
         destroy_entity(self.player)
 

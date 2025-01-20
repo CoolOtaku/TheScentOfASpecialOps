@@ -1,6 +1,6 @@
+from ursina import Ursina, Entity, DirectionalLight
 from ursina.shaders import lit_with_shadows_shader
 from panda3d.core import loadPrcFileData
-from ursina import Ursina, Entity
 
 from screens.screen_manager import ScreenManager
 from screens.editor_screen import EditorScreen
@@ -12,6 +12,7 @@ if __name__ == '__main__':
     loadPrcFileData('', 'interpolate-frames 1')
 
     app = Ursina(title='The scent of a special ops', icon='assets/icons/icon.ico', borderless=False)
+    DirectionalLight().look_at((1, -1, -1))
 
     screen_manager = ScreenManager()
     screen_manager.add_screen('menu', MenuScreen)

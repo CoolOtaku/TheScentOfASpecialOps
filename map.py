@@ -1,5 +1,6 @@
-from ursina import Entity, DirectionalLight, Sky, destroy
+from ursina import Entity, Sky
 
+from const import destroy_list, destroy_entity
 from entitys.drops.wall import Wall
 from entitys.drops.box import Box
 from entitys.mob import Mob
@@ -31,9 +32,7 @@ class Map(Entity):
         self.build_map()
         self.build_walls()
 
-        self.sun = DirectionalLight()
-        self.sun.look_at((1, -1, -1))
-        Sky(texture='assets/textures/maps/sky.jpg')
+        Sky(texture='assets/textures/maps/sky1.jpg')
 
         self.mob = Mob(position=(10, 0, 0), parent=self)
 
@@ -72,17 +71,5 @@ class Map(Entity):
         self.map_data.clear()
         self.weapons.clear()
 
-        for child in self.children:
-            child.disable()
-            try:
-                destroy(child)
-            except Exception as e:
-                print(f'Виникла помилка при видаленні об\'єкта мапи: {e}')
-
-        self.children.clear()
-        super().disable()
-        try:
-            destroy(self)
-        except Exception as e:
-            print(f'Виникла помилка при самої мапи: {e}')
-        del self
+        destroy_list(self.children)
+        destroy_entity(self)

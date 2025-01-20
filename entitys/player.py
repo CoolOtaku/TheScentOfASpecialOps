@@ -1,7 +1,8 @@
 from ursina.prefabs.first_person_controller import FirstPersonController
-from ursina import BoxCollider, color, destroy, distance, held_keys, mouse
+from ursina import BoxCollider, color, distance, held_keys, mouse
 
 from entitys.weapons.weapon import Weapon, WeaponType
+from const import destroy_entity
 
 
 class Player(FirstPersonController):
@@ -59,7 +60,7 @@ class Player(FirstPersonController):
             return
 
         if self.current_weapon:
-            self.hands.hide() if self.current_weapon.weapon_type == WeaponType.HANDS else destroy(self.current_weapon)
+            self.hands.hide() if self.current_weapon.weapon_type == WeaponType.HANDS else destroy_entity(self.current_weapon)
 
         weapon.equip(self)
 

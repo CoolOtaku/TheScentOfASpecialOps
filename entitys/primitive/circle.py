@@ -6,8 +6,8 @@ class Circle(PrimitiveObject):
         super().__init__(
             model='circle',
             texture='vignette',
-            position=(0, 0.5, 0),
             scale=(1, 1, 0.1),
+            collider='sphere',
             name='Circle',
             **kwargs
         )
