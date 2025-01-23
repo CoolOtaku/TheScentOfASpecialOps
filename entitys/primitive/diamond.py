@@ -6,6 +6,7 @@ class Diamond(PrimitiveObject):
         super().__init__(
             model='diamond',
             texture='noise',
+            collider='mesh',
             name='Diamond',
             **kwargs
         )

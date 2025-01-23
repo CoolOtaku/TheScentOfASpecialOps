@@ -7,7 +7,7 @@ class IcoSphere(PrimitiveObject):
             model='icosphere',
             texture='noise',
             position=(0, 1, 0),
-            collider='sphere',
+            collider='mesh',
             name='IcoSphere',
             **kwargs
         )

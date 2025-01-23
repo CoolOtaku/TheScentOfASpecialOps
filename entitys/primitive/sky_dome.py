@@ -7,6 +7,7 @@ class SkyDome(PrimitiveObject):
             model='sky_dome',
             position=(0, 1, 0),
             texture='sky_sunset',
+            collider='sphere',
             name='SkyDome',
             **kwargs
         )
