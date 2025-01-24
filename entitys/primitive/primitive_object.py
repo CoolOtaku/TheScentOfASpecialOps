@@ -13,30 +13,40 @@ class PrimitiveObject(Entity):
             scale=scale,
             collider=collider,
             name=name,
+            color=color.white,
             **kwargs
         )
+        self.default_collider = collider
         self._build_vertex_markers()
-
-    def _build_vertex_markers(self):
-        print(len(self.get_vertices()))
-        for vertex in self.get_vertices():
-            world_pos = Vec3(vertex) * self.scale
-            Entity(model='sphere', scale=0.05, color=color.yellow, position=world_pos, parent=self)
-
-    def get_vertices(self):
-        if hasattr(self.model, 'vertices'):
-            return self.model.vertices
-        else:
-            print(f"У моделі {self.model} нема атрибута 'vertices'")
-            return []
 
     def select(self):
         self.collider.visible = True
-        for marker in self.children:
-            marker.enable()
+        self.color = color.violet
 
     def dis_select(self):
         self.collider.visible = False
+        self.color = color.white
+
+    def enable_collider(self):
+        self.collider = self.default_collider
+
+    def disable_collider(self):
+        self.collider = None
+
+    def _build_vertex_markers(self):
+        for vertex in self.get_vertices():
+            world_pos = Vec3(vertex) * self.scale
+            Entity(model='sphere', scale=0.05, color=color.yellow, position=world_pos, collider='box', enabled=False,
+                   parent=self)
+
+    def get_vertices(self):
+        return self.model.vertices if hasattr(self.model, 'vertices') else []
+
+    def show_vertices(self):
+        for marker in self.children:
+            marker.enable()
+
+    def hide_vertices(self):
         for marker in self.children:
             marker.disable()
 

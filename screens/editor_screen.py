@@ -2,20 +2,12 @@ from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
 from ursina.prefabs.dropdown_menu import DropdownMenu, DropdownMenuButton
 
+from src.map_manager import MapManager
 from screens.base_screen import BaseScreen
 from src.editor_object_manager import EditorObjectManager
 from const import validate_input_entity_property, destroy_entity, destroy_list, destroy_dict
 
-from entitys.primitive.wireframe_cube import WireframeCube
-from entitys.primitive.cube_uv_top import CubeUVTop
-from entitys.primitive.ico_sphere import IcoSphere
-from entitys.primitive.sky_dome import SkyDome
-from entitys.primitive.diamond import Diamond
-from entitys.primitive.sphere import Sphere
-from entitys.primitive.circle import Circle
-from entitys.primitive.plane import Plane
-from entitys.primitive.cube import Cube
-from entitys.primitive.quad import Quad
+from entitys.primitive.primitive_imports import *
 
 
 class EditorScreen(BaseScreen):
@@ -42,8 +34,6 @@ class EditorScreen(BaseScreen):
         self.editor_camera = None
         self.player = None
 
-        self.editing_vertices = False
-
     def load(self):
         self.button_play = Button(text='ГРАТИ', position=(-0.05, 0.48), scale=(0.09, 0.03), on_click=self.play)
         self.button_stop = Button(text='СТОП', position=(0.05, 0.48), scale=(0.09, 0.03), on_click=self.stop)
@@ -51,8 +41,8 @@ class EditorScreen(BaseScreen):
         self.menu_main = DropdownMenu(
             'Меню',
             buttons=[
-                DropdownMenuButton('Зберегти', on_click=lambda: print('Зберегти')),
-                DropdownMenuButton('Завантажити', on_click=lambda: print('Завантажити')),
+                DropdownMenuButton('Зберегти', on_click=lambda: MapManager.export_to_json(self.editor_object_manager.objects)),
+                DropdownMenuButton('Завантажити', on_click=lambda: MapManager.import_from_json(self.editor_object_manager)),
                 DropdownMenuButton('Вийти', on_click=lambda: self.screen_manager.set_screen('menu')),
                 DropdownMenuButton('Небо', on_click=self.add_sky),
             ],
@@ -103,7 +93,7 @@ class EditorScreen(BaseScreen):
             'RZ-': lambda: self.start_holding_button('RZ-', 'z', -1)
         }, position=(0.82, -0.27), button_height=1.5, width=0.06)
         self.vertices_buttons = Button(text='Вершини', position=(0.78, -0.25), scale=(0.2, 0.03),
-                                       on_click=lambda: setattr(self, 'editing_vertices', not self.editing_vertices))
+                                       on_click=lambda: self.editor_object_manager.on_editing_vertices())
 
         self.title_fields_PSR = {
             'position': Text('Позиція:', position=(-0.065, -0.35)),
@@ -187,10 +177,7 @@ class EditorScreen(BaseScreen):
                     or isinstance(mouse.hovered_entity.parent, ButtonList)):
                 return
 
-            if self.editing_vertices:
-                self.editor_object_manager.select_vertex(mouse.hovered_entity)
-            else:
-                self.editor_object_manager.select_object(mouse.hovered_entity)
+            self.editor_object_manager.select(mouse.hovered_entity)
 
     def start_holding_button(self, button_name, axis, value):
         self.pressed_buttons[button_name] = (axis, value)
