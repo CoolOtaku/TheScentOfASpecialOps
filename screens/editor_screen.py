@@ -5,7 +5,7 @@ from ursina.prefabs.dropdown_menu import DropdownMenu, DropdownMenuButton
 from src.map_manager import MapManager
 from screens.base_screen import BaseScreen
 from src.editor_object_manager import EditorObjectManager
-from const import validate_input_entity_property, destroy_entity, destroy_list, destroy_dict
+from const import destroy_entity, destroy_list, destroy_dict
 
 from entitys.primitive.primitive_imports import *
 
@@ -41,8 +41,10 @@ class EditorScreen(BaseScreen):
         self.menu_main = DropdownMenu(
             'Меню',
             buttons=[
-                DropdownMenuButton('Зберегти', on_click=lambda: MapManager.export_to_json(self.editor_object_manager.objects)),
-                DropdownMenuButton('Завантажити', on_click=lambda: MapManager.import_from_json(self.editor_object_manager)),
+                DropdownMenuButton('Зберегти',
+                                   on_click=lambda: MapManager.export_to_json(self.editor_object_manager.objects)),
+                DropdownMenuButton('Завантажити',
+                                   on_click=lambda: MapManager.import_from_json(self.editor_object_manager)),
                 DropdownMenuButton('Вийти', on_click=lambda: self.screen_manager.set_screen('menu')),
                 DropdownMenuButton('Небо', on_click=self.add_sky),
             ],
@@ -53,6 +55,7 @@ class EditorScreen(BaseScreen):
             buttons=[
                 DropdownMenuButton('Площина', on_click=lambda: self.editor_object_manager.create_object(Plane)),
                 DropdownMenuButton('Куб', on_click=lambda: self.editor_object_manager.create_object(Cube)),
+                DropdownMenuButton('Свій Куб', on_click=lambda: self.editor_object_manager.create_object(CustomCube)),
                 DropdownMenuButton('Каркасний куб',
                                    on_click=lambda: self.editor_object_manager.create_object(WireframeCube)),
                 DropdownMenuButton('Куб із UV зверху',
@@ -64,6 +67,8 @@ class EditorScreen(BaseScreen):
                 DropdownMenuButton('Небесний купол',
                                    on_click=lambda: self.editor_object_manager.create_object(SkyDome)),
                 DropdownMenuButton('Діамант', on_click=lambda: self.editor_object_manager.create_object(Diamond)),
+                DropdownMenuButton('Конус', on_click=lambda: self.editor_object_manager.create_object(Cone)),
+                DropdownMenuButton('Циліндер', on_click=lambda: self.editor_object_manager.create_object(Cylinder)),
             ],
             position=(-0.88, 0.45), z=-99
         )
@@ -101,9 +106,15 @@ class EditorScreen(BaseScreen):
             'rotation': Text('Обертання:', position=(-0.1, -0.46))
         }
         self.input_fields_PSR = {
-            'position': InputField(position=(0.3, -0.36), on_value_changed=self.validate_and_update_position),
-            'scale': InputField(position=(0.3, -0.415), on_value_changed=self.validate_and_update_scale),
-            'rotation': InputField(position=(0.3, -0.47), on_value_changed=self.validate_and_update_rotation)
+            'position': InputField(position=(0.3, -0.36),
+                                   on_value_changed=lambda: self.editor_object_manager.validate_and_update_transform(
+                                       'position', self.input_fields_PSR)),
+            'scale': InputField(position=(0.3, -0.415),
+                                on_value_changed=lambda: self.editor_object_manager.validate_and_update_transform(
+                                    'scale', self.input_fields_PSR)),
+            'rotation': InputField(position=(0.3, -0.47),
+                                   on_value_changed=lambda: self.editor_object_manager.validate_and_update_transform(
+                                       'rotation', self.input_fields_PSR))
         }
         self.last_values_PSR = {key: '' for key in self.input_fields_PSR}
 
@@ -124,18 +135,22 @@ class EditorScreen(BaseScreen):
     def update(self):
         for button_name, (axis, value) in self.pressed_buttons.items():
             if 'P' in button_name:
-                self.update_entity_attribute('position', axis, value)
+                self.editor_object_manager.update_attribute('position', axis, value)
             elif 'S' in button_name:
-                self.update_entity_attribute('scale', axis, value)
+                self.editor_object_manager.update_attribute('scale', axis, value)
             elif 'R' in button_name:
-                self.update_entity_attribute('rotation', axis, value)
+                self.editor_object_manager.update_attribute('rotation', axis, value)
 
         if self.editor_object_manager.selected_object:
+            target = self.editor_object_manager.selected_vertex if self.editor_object_manager.selected_vertex and self.editor_object_manager.editing_vertices else self.editor_object_manager.selected_object
+
             for key, input_field in self.input_fields_PSR.items():
-                new_value = f'{getattr(self.editor_object_manager.selected_object, key).x:.2f},{getattr(self.editor_object_manager.selected_object, key).y:.2f},{getattr(self.editor_object_manager.selected_object, key).z:.2f}'
+                new_value = f'{getattr(target, key).x:.2f},{getattr(target, key).y:.2f},{getattr(target, key).z:.2f}'
+
                 if self.last_values_PSR[key] != new_value:
                     input_field.text = new_value
                     self.last_values_PSR[key] = new_value
+
                 input_field.show()
                 self.title_fields_PSR[key].show()
 
@@ -184,36 +199,6 @@ class EditorScreen(BaseScreen):
 
     def stop_holding_button(self):
         self.pressed_buttons.clear()
-
-    def update_entity_attribute(self, attribute, axis, value):
-        if self.editor_object_manager.selected_object:
-            attr = list(getattr(self.editor_object_manager.selected_object, attribute))
-            if axis == 'x':
-                attr[0] += value
-            elif axis == 'y':
-                attr[1] += value
-            elif axis == 'z':
-                attr[2] += value
-            setattr(self.editor_object_manager.selected_object, attribute, tuple(attr))
-
-    def validate_and_update_position(self):
-        self.validate_and_update('position', self.input_fields_PSR['position'].text,
-                                 lambda v: Vec3(*map(float, v.split(','))))
-
-    def validate_and_update_scale(self):
-        self.validate_and_update('scale', self.input_fields_PSR['scale'].text,
-                                 lambda v: Vec3(*map(float, v.split(','))))
-
-    def validate_and_update_rotation(self):
-        self.validate_and_update('rotation', self.input_fields_PSR['rotation'].text,
-                                 lambda v: Vec3(*map(float, v.split(','))))
-
-    def validate_and_update(self, attribute, value, parser):
-        if validate_input_entity_property(value):
-            if self.editor_object_manager.selected_object:
-                setattr(self.editor_object_manager.selected_object, attribute, parser(value))
-        else:
-            print(f'Некоректне значення для {attribute}!')
 
     @staticmethod
     def unlock_mouse():

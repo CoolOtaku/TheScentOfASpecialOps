@@ -1,5 +1,7 @@
 import json
 
+from ursina import Vec3
+
 from entitys.primitive.primitive_imports import *
 
 
@@ -12,9 +14,10 @@ class MapManager:
             obj_data = {
                 'class': obj.__class__.__name__,
                 'texture': obj.texture.name if obj.texture else None,
-                'position': (obj.x, obj.y, obj.z),
-                'scale': (obj.scale_x, obj.scale_y, obj.scale_z),
-                'rotation': (obj.rotation_x, obj.rotation_y, obj.rotation_z)
+                'position': MapManager.vec3_to_list(obj.position),
+                'scale': MapManager.vec3_to_list(obj.scale),
+                'rotation': MapManager.vec3_to_list(obj.rotation),
+                'vertices': [MapManager.vec3_to_list(v) for v in obj.get_vertices()]
             }
             data.append(obj_data)
 
@@ -34,10 +37,19 @@ class MapManager:
                 if obj_class:
                     obj_instance = obj_class()
                     for key, value in obj_data.items():
+                        if key == 'vertices':
+                            for i in range(len(value)):
+                                obj_instance.update_vertex_position(i, obj_instance.local_to_world(Vec3(*value[i])))
+
                         setattr(obj_instance, key, value)
+
                     obj_instance.parent = editor_object.parent
                     editor_object.objects.append(obj_instance)
 
             print(f'Карта успішно завантажена з {filename}')
         except Exception as e:
             print(f'Помилка завантаження карти: {e}')
+
+    @staticmethod
+    def vec3_to_list(vec):
+        return [vec.x, vec.y, vec.z] if isinstance(vec, Vec3) else vec

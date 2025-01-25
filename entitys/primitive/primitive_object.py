@@ -34,10 +34,18 @@ class PrimitiveObject(Entity):
         self.collider = None
 
     def _build_vertex_markers(self):
-        for vertex in self.get_vertices():
-            world_pos = Vec3(vertex) * self.scale
-            Entity(model='sphere', scale=0.05, color=color.yellow, position=world_pos, collider='box', enabled=False,
-                   parent=self)
+        for i, vertex in enumerate(self.get_vertices()):
+            world_pos = self.local_to_world(vertex)
+            marker = Entity(
+                model='cube',
+                scale=0.05,
+                color=color.yellow,
+                position=world_pos,
+                collider='box',
+                enabled=False,
+                parent=self
+            )
+            marker.vertex_index = i
 
     def get_vertices(self):
         return self.model.vertices if hasattr(self.model, 'vertices') else []
@@ -49,6 +57,16 @@ class PrimitiveObject(Entity):
     def hide_vertices(self):
         for marker in self.children:
             marker.disable()
+
+    def update_vertex_position(self, vertex_index, position):
+        self.model.vertices[vertex_index] = self.world_to_local(position)
+        self.model.generate()
+
+    def local_to_world(self, vertex):
+        return Vec3(vertex) * self.scale
+
+    def world_to_local(self, world_position):
+        return Vec3(world_position) / self.scale
 
     def disable(self):
         destroy_list(self.children)

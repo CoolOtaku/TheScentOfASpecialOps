@@ -1,6 +1,9 @@
+from .primitive_object import PrimitiveObject
 from .wireframe_cube import WireframeCube
+from .сustom_сube import CustomCube
 from .cube_uv_top import CubeUVTop
 from .ico_sphere import IcoSphere
+from .cylinder import Cylinder
 from .sky_dome import SkyDome
 from .diamond import Diamond
 from .sphere import Sphere
@@ -8,3 +11,4 @@ from .circle import Circle
 from .plane import Plane
 from .cube import Cube
 from .quad import Quad
+from .сone import Cone
