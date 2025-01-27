@@ -1,4 +1,4 @@
-from ursina import Entity, Sky
+from ursina import Entity, Sky, DirectionalLight
 
 from const import destroy_list, destroy_entity
 from entitys.drops.wall import Wall
@@ -32,7 +32,8 @@ class Map(Entity):
         self.build_map()
         self.build_walls()
 
-        Sky(texture='assets/textures/maps/sky1.jpg')
+        DirectionalLight().look_at((1, -1, -1))
+        Sky()
 
         self.mob = Mob(position=(10, 0, 0), parent=self)
 

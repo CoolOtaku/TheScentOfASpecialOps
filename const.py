@@ -13,6 +13,9 @@ PATH_WINDOW_TEXTURE: Final[str] = 'assets/textures/other/window_background.png'
 PATH_WEAPON_MODELS: Final[str] = 'assets/models/weapons/'
 PATH_WEAPON_SOUNDS: Final[str] = 'assets/sound/weapons/'
 
+PATH_HOUSES_MODELS: Final[str] = 'assets/models/maps/houses/'
+PATH_HOUSES_TEXTURES: Final[str] = 'assets/textures/maps/houses/'
+
 def get_anim_duration(actor, name) -> float:
     return actor.getNumFrames(name) / actor.getFrameRate(name)
 

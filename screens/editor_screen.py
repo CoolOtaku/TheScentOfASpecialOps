@@ -8,6 +8,7 @@ from src.editor_object_manager import EditorObjectManager
 from const import destroy_entity, destroy_list, destroy_dict
 
 from entitys.primitive.primitive_imports import *
+from entitys.houses.houses_imports import *
 
 
 class EditorScreen(BaseScreen):
@@ -18,6 +19,7 @@ class EditorScreen(BaseScreen):
 
         self.menu_main = None
         self.menu_objects_primitive = None
+        self.menu_houses = None
 
         self.pressed_buttons = {}
         self.position_buttons = None
@@ -71,6 +73,17 @@ class EditorScreen(BaseScreen):
                 DropdownMenuButton('Циліндер', on_click=lambda: self.editor_object_manager.create_object(Cylinder)),
             ],
             position=(-0.88, 0.45), z=-99
+        )
+        self.menu_houses = DropdownMenu(
+            'Будинки',
+            buttons=[
+                DropdownMenuButton('Спостерігальна вежа',
+                                   on_click=lambda: self.editor_object_manager.create_object(ObservationTower)),
+                DropdownMenuButton('Трьох поверхівка',
+                                   on_click=lambda: self.editor_object_manager.create_object(ThreeFloors)),
+
+            ],
+            position=(-0.88, 0.42), z=-98
         )
 
         self.position_buttons = ButtonList(button_dict={
@@ -207,7 +220,8 @@ class EditorScreen(BaseScreen):
 
     @staticmethod
     def add_sky():
-        Sky(texture='assets/textures/maps/sky1.jpg')
+        DirectionalLight().look_at((1, -1, -1))
+        Sky()
 
     def disable(self):
         destroy_entity(self.button_play)
