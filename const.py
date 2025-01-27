@@ -22,47 +22,45 @@ def validate_input_entity_property(value):
     return False
 
 def destroy_entity(entity):
+    name = entity.__class__.__name__
     try:
         entity.disable()
     except Exception as e:
-        print(f'Виникла помилка при відключенні сутності: {e}')
-    destroy(entity)
+        print(f'Виникла помилка при відключенні сутності: {e}, Сутність: {name}')
+    try:
+        destroy(entity)
+    except Exception as e:
+        print(f'Виникла помилка при видаленні сутності: {e}, Сутність: {name}')
     del entity
 
 def destroy_list(list_entity):
+    name = list_entity.__class__.__name__
     for item in list_entity:
-        try:
-            item.disable()
-        except Exception as e:
-            print(f'Виникла помилка при відключенні елемента списку: {e}')
-        try:
-            destroy(item)
-        except Exception as e:
-            print(f'Виникла помилка при видаленні елемента списку: {e}')
-        del item
+        destroy_entity(item)
+
+    list_entity.clear()
     try:
         list_entity.disable()
     except Exception as e:
-        print(f'Виникла помилка при відключенні списку: {e}')
-    list_entity.clear()
-    destroy(list_entity)
+        print(f'Виникла помилка при відключенні списку: {e}, Сутність: {name}')
+    try:
+        destroy(list_entity)
+    except Exception as e:
+        print(f'Виникла помилка при видаленні списку: {e}, Сутність: {name}')
     del list_entity
 
-
 def destroy_dict(dict_entity):
-    for key, value in dict_entity.items():
-        try:
-            value.disable()
-        except Exception as e:
-            print(f'Виникла помилка при відключенні елемента {key}: {e}')
-        try:
-            destroy(value)
-        except Exception as e:
-            print(f'Виникла помилка при видаленні елемента {key}: {e}')
+    name = dict_entity.__class__.__name__
+    for key, item in dict_entity.items():
+        destroy_entity(item)
 
     dict_entity.clear()
     try:
-        destroy(dict_entity)  # Знищуємо словник, якщо можливо
+        dict_entity.disable()
     except Exception as e:
-        print(f'Виникла помилка при видаленні словника: {e}')
+        print(f'Виникла помилка при відключенні словника: {e}, Сутність: {name}')
+    try:
+        destroy(dict_entity)
+    except Exception as e:
+        print(f'Виникла помилка при видаленні словника: {e}, Сутність: {name}')
     del dict_entity

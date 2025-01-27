@@ -44,14 +44,14 @@ class Weapon(Entity):
         self.attack_sound = Audio(f'{PATH_WEAPON_SOUNDS}{weapon_id}_attack.wav', autoplay=False)
         self.muzzle_flash = SpriteSheetAnimation(
             texture='assets/textures/other/muzzle_flash_sprite.png',
-            tileset_size=(4, 2),
-            fps=30,
-            loop=False,
-            parent=parent,
+            animations={'flash': ((0, 0), (3, 1))},
             position=(0.06, -0.06, 1),
-            scale=0.2,
+            tileset_size=(4, 2),
             visible=False,
-            animations={'flash': ((0, 0), (3, 1))}
+            scale=0.2,
+            loop=False,
+            fps=30,
+            parent=self
         )
 
     def equip(self, player):
@@ -69,7 +69,7 @@ class Weapon(Entity):
             player.current_weapon = self
             player.parent.weapons.remove(self)
             self.parent = player.camera_pivot
-            self.muzzle_flash.parent = player.camera_pivot
+            self.muzzle_flash.parent = self.parent
             self.is_equipped = True
 
     def drop(self, player):
@@ -81,7 +81,7 @@ class Weapon(Entity):
             self.scale = 0.05
 
             self.parent = player.parent
-            self.muzzle_flash.parent = player.parent
+            self.muzzle_flash.parent = self.parent
             self.parent.weapons.append(self)
             self.is_equipped = False
 
