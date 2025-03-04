@@ -2,7 +2,10 @@ import json
 
 from ursina import Vec3
 
+from const import destroy_list
+
 from entitys.primitive.primitive_imports import *
+from entitys.houses.houses_imports import *
 
 
 class MapManager:
@@ -11,13 +14,16 @@ class MapManager:
         data = []
 
         for obj in objects:
+            obj_class = type(obj)
+            should_store_vertices = issubclass(obj_class, PrimitiveObject) and not issubclass(obj_class, HouseObject)
+
             obj_data = {
                 'class': obj.__class__.__name__,
                 'texture': obj.texture.name if obj.texture else None,
                 'position': MapManager.vec3_to_list(obj.position),
                 'scale': MapManager.vec3_to_list(obj.scale),
                 'rotation': MapManager.vec3_to_list(obj.rotation),
-                'vertices': [MapManager.vec3_to_list(v) for v in obj.get_vertices()]
+                'vertices': [MapManager.vec3_to_list(v) for v in obj.get_vertices()] if should_store_vertices else [],
             }
             data.append(obj_data)
 
@@ -40,6 +46,8 @@ class MapManager:
                         if key == 'vertices':
                             for i in range(len(value)):
                                 obj_instance.update_vertex_position(i, obj_instance.local_to_world(Vec3(*value[i])))
+                                destroy_list(obj_instance.children)
+                                obj_instance.build_vertex_markers()
 
                         setattr(obj_instance, key, value)
 

@@ -17,7 +17,7 @@ class PrimitiveObject(Entity):
             **kwargs
         )
         self.default_collider = collider
-        self._build_vertex_markers()
+        self.build_vertex_markers()
 
     def select(self):
         self.collider.visible = True
@@ -33,7 +33,7 @@ class PrimitiveObject(Entity):
     def disable_collider(self):
         self.collider = None
 
-    def _build_vertex_markers(self):
+    def build_vertex_markers(self):
         for i, vertex in enumerate(self.get_vertices()):
             world_pos = self.local_to_world(vertex)
             marker = Entity(

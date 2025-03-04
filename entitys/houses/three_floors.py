@@ -1,8 +1,8 @@
 from const import PATH_HOUSES_MODELS
-from entitys.primitive.primitive_object import PrimitiveObject
+from entitys.houses.house_object import HouseObject
 
 
-class ThreeFloors(PrimitiveObject):
+class ThreeFloors(HouseObject):
     def __init__(self, **kwargs):
         super().__init__(
             model=f'{PATH_HOUSES_MODELS}three_floors.glb',

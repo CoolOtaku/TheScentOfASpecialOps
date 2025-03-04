@@ -16,7 +16,7 @@ class GameScreen(BaseScreen):
         self.is_paused = False
 
     def load(self):
-        self.pause_menu = GamePauseMenu(self)
+        self.pause_menu = GamePauseMenu(game_screen=self)
 
         self.map = Map(parent=self)
         self.player = Player(parent=self.map)
@@ -32,6 +32,7 @@ class GameScreen(BaseScreen):
         self.is_paused = self.pause_menu.enabled
 
     def disable(self):
+        destroy_list(self.pause_menu.children)
         destroy_entity(self.pause_menu)
 
         destroy_entity(self.map)

@@ -7,5 +7,6 @@ class CubeUVTop(PrimitiveObject):
             model='cube_uv_top',
             texture='rainbow',
             name='CubeUVTop',
+            collider='mesh',
             **kwargs
         )

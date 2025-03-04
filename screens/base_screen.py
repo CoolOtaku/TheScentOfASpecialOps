@@ -1,4 +1,4 @@
-from ursina import Entity, destroy
+from ursina import Entity
 
 from const import destroy_list, destroy_entity
 

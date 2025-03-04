@@ -40,5 +40,6 @@ class CustomCube(PrimitiveObject):
             model=custom_mesh,
             texture='brick',
             name='CustomCube',
+            collider='mesh',
             **kwargs
         )
